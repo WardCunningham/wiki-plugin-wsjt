@@ -12,15 +12,19 @@
 
   emit = ($item, item) => {
     return $item.append(`
-      <p style="background-color:#eee;padding:15px;">
-        ${expand(item.text)}
-      </p>`);
+      <pre style="background-color:#eee;padding:15px;">
+        waiting
+      </pre>`);
   };
 
   bind = function($item, item) {
-    return $item.dblclick(() => {
+    $item.dblclick(() => {
       return wiki.textEditor($item, item);
     });
+
+    fetch('/plugin/wsjt/copy')
+      .then(res=>res.text())
+      .then(text=>$item.find('pre').text(text))
   };
 
   if (typeof window !== "undefined" && window !== null) {
