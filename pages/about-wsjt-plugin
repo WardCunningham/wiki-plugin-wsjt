@@ -1,0 +1,37 @@
+{
+  "title": "About WSJT Plugin",
+  "story": [
+  {
+    "type": "paragraph",
+    "id": "fea6d3d0cffcab56",
+    "text": "Here we describe the purpose of the plugin and include a sample."
+  },
+  {
+    "type": "wsjt",
+    "id": "230f416e9e2cd064",
+    "text": "This is text in the new plugin. You can *double-click* to edit it too."
+  }
+],
+  "journal": [
+  {
+    "type": "create",
+    "item": {
+      "title": "About WSJT Plugin",
+      "story": [
+  {
+    "type": "paragraph",
+    "id": "fea6d3d0cffcab56",
+    "text": "Here we describe the purpose of the plugin and include a sample."
+  },
+  {
+    "type": "wsjt",
+    "id": "230f416e9e2cd064",
+    "text": "This is text in the new plugin. You can *double-click* to edit it too."
+  }
+]
+    },
+    "date": 1564331204000,
+    "certificate": "from mkplugin.sh"
+  }
+]
+}

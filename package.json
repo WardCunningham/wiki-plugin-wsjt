@@ -1,0 +1,40 @@
+{
+  "name": "wiki-plugin-wsjt",
+  "version": "0.1.0",
+  "description": "Federated Wiki - WSJT Plugin",
+  "keywords": [
+    "wsjt",
+    "wiki",
+    "federated wiki",
+    "plugin"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "you@example.com",
+    "url": "http://example.com"
+  },
+  "contributors": [],
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "grunt": "^1.0.1",
+    "grunt-contrib-coffee": "^2.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-git-authors": "^3.2.0",
+    "grunt-mocha-test": "^0.13.2",
+    "mocha": "^5.2.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedwiki/wiki-plugin-wsjt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fedwiki/wiki-plugin-wsjt/issues"
+  },
+  "engines": {
+    "node": ">=0.10"
+  }
+}
