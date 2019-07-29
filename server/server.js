@@ -4,7 +4,6 @@
 var dgram = require('dgram');
 
 var PORT = 33333;
-var HOST = '10.0.1.154';
 
 var server = dgram.createSocket('udp4');
 
@@ -13,7 +12,7 @@ server.on('listening', function() {
   console.log('UDP Server listening on ' + address.address + ':' + address.port);
 })
 
-server.bind(PORT,HOST);
+server.bind(PORT);
 
 function cors (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
@@ -32,7 +31,7 @@ function decoder (buf) {
   let b = buf, n = buf.length, i = 0
   let one = () => {return buf[i++]}
   let two = () => {return one()*256+one()}
-  let four = () => {return two()*65768+two()}
+  let four = () => {return two()*256*256+two()}
   let eight = () => {return [four(),four()]}
   let str = () => {let s='', c=four(); for(let j=0;j<c;j++){s=s+String.fromCharCode(one())}; return s}
   return {one,two,four,eight,str}
@@ -71,7 +70,7 @@ function startServer (params) {
         let copy = dec.str()
         let conf = dec.one()
         let rept = `${format(time)} ${freq} ${copy}`
-        console.log(rept)
+        // console.log(rept)
         while(log.length > 1000) log.shift()
         log.push(rept)
         break;
