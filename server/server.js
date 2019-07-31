@@ -69,7 +69,7 @@ function startServer (params) {
         let mode = dec.str()
         let copy = dec.str()
         let conf = dec.one()
-        let rept = `${format(time)} ${freq} ${copy}`
+        let rept = `${remote.address} ${format(time)} ${freq} ${copy}`
         // console.log(rept)
         while(log.length > 1000) log.shift()
         log.push(rept)
@@ -81,9 +81,15 @@ function startServer (params) {
 
   app.get('/plugin/wsjt/copy', cors, (req, res) => {
     res.set('Content-Type', 'text/plain')
-    res.send(log.join("\n"))
+    res.send(log.join("\n")+"\n")
   })
 
+  app.get('/plugin/wsjt/find', cors, (req, res) => {
+    let found = log.filter(line => line.includes(req.query.word))
+    res.set('Content-Type', 'text/plain')
+    res.send(found.join("\n")+"\n")
+
+  })
 }
 
 module.exports = {startServer};
