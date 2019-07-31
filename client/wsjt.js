@@ -24,6 +24,8 @@
         markup.host = m[1]
       } else if (line.match(/MARKERS/)) {
         markup.markers = true
+      } else if (line.match(/STATS/)) {
+        markup.stats = true
       }
     }
     return markup
@@ -63,6 +65,28 @@
     wiki.showResult(pageObject, {$page})
   }
 
+  function tally (text) {
+    let lines = text.split("\n")
+
+    function uniq (pattern) {
+      let found = {}
+      for (line of lines) {
+        let m = line.match(pattern)
+        if (m) {found[m[1]]=true}
+      }
+      return Object.keys(found).length
+    }
+
+    decodes = lines.length
+    radios = uniq(/^(\d+\.\d+\.\d+\.\d+) /)
+    stations = uniq(/([A-Z]+\d[A-Z]+)/)
+    heard = uniq(/ [A-Z]+\d[A-Z]+ ([A-Z]+\d[A-Z]+) /)
+    grids = uniq(/ ([A-R][A-Q]\d\d)\b/)
+    report = {decodes, stations, heard, grids, radios}
+    console.log('got stats',report)
+    return Object.keys(report).map(k => `<tr><td style="text-align:right">${report[k]}<td>${k}`).join("\n")
+  }
+
   function emit ($item, item) {
     let markup = parse(item.text)
     console.log('emit',markup)
@@ -71,7 +95,9 @@
       $item.get(0).markerData = () => []
     }
     return $item.append(`
-      <pre style="background-color:#eee;padding:15px;">waiting</pre>`)
+      <table></table>
+      <pre style="background-color:#eee;padding:15px;">waiting</pre>
+    `)
   }
 
   function bind ($item, item) {
@@ -92,6 +118,10 @@
       .then(res=>res.text())
       .then(text=>{
         $item.find('pre').html(annotate(text))
+        if (markup.stats) {
+          console.log('want stats')
+          $item.find('table').html(tally(text))
+        }
         $item.get(0).markerData = () => madenhead(text)
       })
   };
