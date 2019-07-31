@@ -15,16 +15,37 @@
   }
 
   function parse (text) {
-    let result = {}
+    let markup = {}
     var m
     for (let line of text.split(/\r?\n/)) {
       if (m=line.match(/FIND (.*)/)) {
-        result.find = m[1]
+        markup.find = m[1]
       } else if (m=line.match(/HOST (.*)/)) {
-        result.host = m[1]
+        markup.host = m[1]
+      } else if (line.match(/MARKERS/)) {
+        markup.markers = true
       }
     }
-    return result
+    return markup
+  }
+
+  function madenhead (text) {
+
+    function marker(grid,label) {
+      // https://en.wikipedia.org/wiki/Maidenhead_Locator_System
+      const a = i => grid.charCodeAt(i)-'A'.charCodeAt(0) || 0
+      const n = i => grid.charCodeAt(i)-'0'.charCodeAt(0) || 0
+      let lat = a(1)*10 + n(3)*1 + a(5)/24 + n(7)/240 - 90
+      let lon = a(0)*20 + n(2)*2 + a(4)/12 + n(6)/120 - 180
+      return {lat:1*lat.toFixed(5), lon:1*lon.toFixed(5), label}
+    }
+
+    let callgrid = /(\b[A-Z]+\d+[A-Z]+) ([A-R][A-Q]\d\d)/
+    let hits = text.split("\n").filter(line=>line.match(callgrid))
+    return hits.map(line => {
+      let m = line.match(callgrid)
+      return marker(m[2], m[1])
+    })
   }
 
   function drill ($item, param, text) {
@@ -32,7 +53,10 @@
 
     let json = {
       title: 'Find '+text,
-      story: [{type: 'wsjt', text: `HOST ${param.host}\nFIND ${text}`, id:id()}]
+      story: [
+        {type: 'paragraph', text: `See [[Diagram]], [[Topo Map]]`, id:id()},
+        {type: 'wsjt', text: `HOST ${param.host}\nFIND ${text}\nMARKERS`, id:id()},
+      ]
     }
     let pageObject = wiki.newPage(json, null)
     let $page = $item.parents('.page')
@@ -40,29 +64,36 @@
   }
 
   function emit ($item, item) {
-    console.log('emit',parse(item.text))
+    let markup = parse(item.text)
+    console.log('emit',markup)
+    if (markup.markers) {
+      $item.addClass('marker-source')
+      $item.get(0).markerData = () => []
+    }
     return $item.append(`
       <pre style="background-color:#eee;padding:15px;">waiting</pre>`)
   }
 
   function bind ($item, item) {
-    let result=parse(item.text)
+    let markup=parse(item.text)
 
     $item.dblclick((e) => {
       console.log('double click', e.target.tagName)
       if (e.target.tagName == 'SPAN') {
         console.log('span', e.target, e.target.innerText)
-        return drill($item, result, e.target.innerText)
+        return drill($item, markup, e.target.innerText)
       }
       return wiki.textEditor($item, item);
     });
 
-    let host = result.host ? `//${result.host}` : ''
-    let query = result.find ? `find?word=${result.find}` : 'copy'
+    let host = markup.host ? `//${markup.host}` : ''
+    let query = markup.find ? `find?word=${markup.find}` : 'copy'
     fetch(`${host}/plugin/wsjt/${query}`)
       .then(res=>res.text())
-      .then(text=>$item.find('pre').html(annotate(text)))
-
+      .then(text=>{
+        $item.find('pre').html(annotate(text))
+        $item.get(0).markerData = () => madenhead(text)
+      })
   };
 
   if (typeof window !== "undefined" && window !== null) {
