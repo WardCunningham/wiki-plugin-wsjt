@@ -80,9 +80,12 @@
     decodes = lines.length
     radios = uniq(/^(\d+\.\d+\.\d+\.\d+) /)
     stations = uniq(/([A-Z]+\d[A-Z]+)/)
+    slots = uniq(/ (\d\d\d\d\d\d) /)
     heard = uniq(/ [A-Z]+\d[A-Z]+ ([A-Z]+\d[A-Z]+) /)
-    grids = uniq(/ ([A-R][A-Q]\d\d)\b/)
-    report = {decodes, stations, heard, grids, radios}
+    cq = uniq(/ CQ .* ([A-Z]+\d[A-Z]+) /)
+    squares = uniq(/ ([A-R][A-Q]\d\d)\b/)
+    grids = uniq(/ ([A-R][A-Q])\d\d\b/)
+    report = {decodes, slots, stations, heard, cq, squares, grids, radios}
     console.log('got stats',report)
     return Object.keys(report).map(k => `<tr><td style="text-align:right">${report[k]}<td>${k}`).join("\n")
   }

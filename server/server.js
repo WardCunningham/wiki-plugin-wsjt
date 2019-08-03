@@ -46,6 +46,30 @@ function format (time) {
   return pad(at/3600%24)+pad(at/60%60)+pad(at%60)
 }
 
+function tally (lines) {
+
+  function uniq (pattern) {
+    let found = {}
+    for (line of lines) {
+      let m = line.match(pattern)
+      if (m) {found[m[1]]=true}
+    }
+    return Object.keys(found).length
+  }
+
+  decodes = lines.length
+  radios = uniq(/^(\d+\.\d+\.\d+\.\d+) /)
+  stations = uniq(/([A-Z]+\d[A-Z]+)/)
+  slots = uniq(/ (\d\d\d\d\d\d) /)
+  heard = uniq(/ [A-Z]+\d[A-Z]+ ([A-Z]+\d[A-Z]+) /)
+  cq = uniq(/ CQ .* ([A-Z]+\d[A-Z]+) /)
+  squares = uniq(/ ([A-R][A-Q]\d\d)\b/)
+  grids = uniq(/ ([A-R][A-Q])\d\d\b/)
+  report = {decodes, slots, stations, heard, cq, squares, grids, radios}
+  return report
+}
+
+
 function startServer (params) {
   var app = params.app
   var argv = params.argv
@@ -71,7 +95,7 @@ function startServer (params) {
         let conf = dec.one()
         let rept = `${remote.address} ${format(time)} ${freq} ${copy}`
         // console.log(rept)
-        while(log.length > 1000) log.shift()
+        while(log.length >= 1000) log.shift()
         log.push(rept)
         break;
     }
@@ -88,7 +112,10 @@ function startServer (params) {
     let found = log.filter(line => line.includes(req.query.word))
     res.set('Content-Type', 'text/plain')
     res.send(found.join("\n")+"\n")
+  })
 
+  app.get('/plugin/wsjt/stats', cors, (req, res) => {
+    res.json(tally(log))
   })
 }
 
