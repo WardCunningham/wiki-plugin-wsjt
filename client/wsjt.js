@@ -82,7 +82,7 @@
     stations = uniq(/([A-Z]+\d[A-Z]+)/)
     slots = uniq(/ (\d\d\d\d\d\d) /)
     heard = uniq(/ [A-Z]+\d[A-Z]+ ([A-Z]+\d[A-Z]+) /)
-    cq = uniq(/ CQ .* ([A-Z]+\d[A-Z]+) /)
+    cq = uniq(/ CQ.* ([A-Z]+\d[A-Z]+) /)
     squares = uniq(/ ([A-R][A-Q]\d\d)\b/)
     grids = uniq(/ ([A-R][A-Q])\d\d\b/)
     report = {decodes, slots, stations, heard, cq, squares, grids, radios}
@@ -116,7 +116,7 @@
     });
 
     let host = markup.host ? `//${markup.host}` : ''
-    let query = markup.find ? `find?word=${markup.find}` : 'copy'
+    let query = markup.find ? `find?word=${markup.find}` : 'copy?last=500'
     fetch(`${host}/plugin/wsjt/${query}`)
       .then(res=>res.text())
       .then(text=>{

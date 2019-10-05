@@ -39,9 +39,7 @@ function decoder (buf) {
 
 function format (time) {
   let pad = n => Math.floor(n).toString().padStart(2,0)
-  let day = 24*60*60*1000
-  let now = Date.now()
-  var at = (now - now + time) / 1000
+  var at = time / 1000
   var at = at - at%15
   return pad(at/3600%24)+pad(at/60%60)+pad(at%60)
 }
@@ -62,11 +60,33 @@ function tally (lines) {
   stations = uniq(/([A-Z]+\d[A-Z]+)/)
   slots = uniq(/ (\d\d\d\d\d\d) /)
   heard = uniq(/ [A-Z]+\d[A-Z]+ ([A-Z]+\d[A-Z]+) /)
-  cq = uniq(/ CQ .* ([A-Z]+\d[A-Z]+) /)
+  cq = uniq(/ CQ.* ([A-Z]+\d[A-Z]+) /)
   squares = uniq(/ ([A-R][A-Q]\d\d)\b/)
   grids = uniq(/ ([A-R][A-Q])\d\d\b/)
   report = {decodes, slots, stations, heard, cq, squares, grids, radios}
   return report
+}
+
+function attention(lines) {
+  let calls = {}
+  let result = {}
+  let regex = /\b([A-Z]+\d{1,2}[A-Z]+) ([A-Z]+\d{1,2}[A-Z]+)\b/
+
+  for (line of lines) {
+    let m = regex.exec(line)
+    if (m) {
+      let callers = calls[m[1]] = calls[m[1]] || {}
+      callers[m[2]] = true
+    }
+  }
+  for (call in calls) {
+    let callers = calls[call]
+    let count = Object.keys(callers).length
+    if (count > 4) {
+      result[call] = count
+    }
+  }
+  return result
 }
 
 
@@ -95,17 +115,26 @@ function startServer (params) {
         let conf = dec.one()
         let rept = `${remote.address} ${format(time)} ${freq} ${copy}`
         // console.log(rept)
-        while(log.length >= 1000) log.shift()
+        while(log.length >= 10000) log.shift()
         log.push(rept)
         break;
     }
   }
+
+  function winnow () {
+    let expired = ` ${format(Date.now() - 60*60*1000)} `
+    while(log.length > 0 && log[0].includes(expired)) {
+      log.shift()
+    }
+  }
   
   server.on('message', handle_message)
+  setInterval(winnow,7500)
 
   app.get('/plugin/wsjt/copy', cors, (req, res) => {
+    let last = req.query.last || 0
     res.set('Content-Type', 'text/plain')
-    res.send(log.join("\n")+"\n")
+    res.send(log.slice(-last).join("\n")+"\n")
   })
 
   app.get('/plugin/wsjt/find', cors, (req, res) => {
@@ -116,6 +145,10 @@ function startServer (params) {
 
   app.get('/plugin/wsjt/stats', cors, (req, res) => {
     res.json(tally(log))
+  })
+
+  app.get('/plugin/wsjt/attention', cors, (req, res) => {
+    res.json(attention(log))
   })
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "wiki-plugin-wsjt",
-  "version": "0.1.5",
+  "version": "0.2.0-pre6",
   "description": "Federated Wiki - WSJT Plugin",
   "keywords": [
     "wsjt",
