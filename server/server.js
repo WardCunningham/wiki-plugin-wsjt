@@ -1,7 +1,8 @@
 // wsjt plugin, server-side component
 // These handlers are launched with the wiki server.
 
-var dgram = require('dgram');
+const fs = require('fs')
+const dgram = require('dgram')
 
 var PORT = 33333;
 
@@ -93,15 +94,36 @@ function attention(lines) {
 function startServer (params) {
   var app = params.app
   var argv = params.argv
+  var assets = argv.assets
+
+  function mkdir(dir) {
+    if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+    }
+  }
+
+  mkdir(`${assets}`)
+  mkdir(`${assets}/plugins`)
+  mkdir(`${assets}/plugins/wsjt`)
+
+  function sample (message,type) {
+    let rand = ((Math.random()*100)+100+'').substring(1,2)
+    let name = `${assets}/plugins/wsjt/type-${type}-${rand}.data`
+    fs.writeFile(name,message,(err)=>{
+      if(err)console.log('write sample', err.message)
+    })
+  }
 
   var log = []
 
   function handle_message (message, remote) {
-    // console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
+    console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
+    sample(message)
     let dec = decoder(message)
     let magic = dec.four()
     let version = dec.four()
     let type = dec.four()
+    sample(message,type)
     switch (type) {
       case 2:
         let id = dec.str()
