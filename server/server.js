@@ -118,7 +118,6 @@ function startServer (params) {
 
   function handle_message (message, remote) {
     console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
-    sample(message)
     let dec = decoder(message)
     let magic = dec.four()
     let version = dec.four()
