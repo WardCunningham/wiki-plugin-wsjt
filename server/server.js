@@ -3,6 +3,7 @@
 
 const fs = require('fs')
 const dgram = require('dgram')
+const {Reader} = require('wsjt-reader')
 
 var PORT = 33333;
 
@@ -28,15 +29,15 @@ function buf2hex (buf) {
   return hex
 }
 
-function decoder (buf) {
-  let b = buf, n = buf.length, i = 0
-  let one = () => {return buf[i++]}
-  let two = () => {return one()*256+one()}
-  let four = () => {return two()*256*256+two()}
-  let eight = () => {return [four(),four()]}
-  let str = () => {let s='', c=four(); for(let j=0;j<c;j++){s=s+String.fromCharCode(one())}; return s}
-  return {one,two,four,eight,str}
-}
+// function decoder (buf) {
+//   let b = buf, n = buf.length, i = 0
+//   let one = () => {return buf[i++]}
+//   let two = () => {return one()*256+one()}
+//   let four = () => {return two()*256*256+two()}
+//   let eight = () => {return [four(),four()]}
+//   let str = () => {let s='', c=four(); for(let j=0;j<c;j++){s=s+String.fromCharCode(one())}; return s}
+//   return {one,two,four,eight,str}
+// }
 
 function format (time) {
   let pad = n => Math.floor(n).toString().padStart(2,0)
@@ -117,24 +118,25 @@ function startServer (params) {
   var log = []
 
   function handle_message (message, remote) {
-    console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
-    let dec = decoder(message)
-    let magic = dec.four()
-    let version = dec.four()
-    let type = dec.four()
-    sample(message,type)
-    switch (type) {
+    // console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
+    let r = new Reader(message)
+    // let dec = decoder(message)
+    // let magic = dec.four()
+    // let version = dec.four()
+    // let type = dec.four()
+    // sample(message,type)
+    switch (r.type()) {
       case 2:
-        let id = dec.str()
-        let isnew = dec.one()
-        let time = dec.four()
-        let snr = dec.four()
-        let dtime = dec.eight()
-        let freq = dec.four()
-        let mode = dec.str()
-        let copy = dec.str()
-        let conf = dec.one()
-        let rept = `${remote.address} ${format(time)} ${freq} ${copy}`
+        // let id = dec.str()
+        // let isnew = dec.one()
+        // let time = dec.four()
+        // let snr = dec.four()
+        // let dtime = dec.eight()
+        // let freq = dec.four()
+        // let mode = dec.str()
+        // let copy = dec.str()
+        // let conf = dec.one()
+        let rept = `${remote.address} ${format(r.time())} ${r.freq()} ${r.copy()}`
         // console.log(rept)
         while(log.length >= 10000) log.shift()
         log.push(rept)

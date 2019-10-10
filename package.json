@@ -1,6 +1,6 @@
 {
   "name": "wiki-plugin-wsjt",
-  "version": "0.2.0-pre6",
+  "version": "0.2.0",
   "description": "Federated Wiki - WSJT Plugin",
   "keywords": [
     "wsjt",
@@ -36,5 +36,8 @@
   },
   "engines": {
     "node": ">=0.10"
+  },
+  "dependencies": {
+    "wsjt-reader": "^0.1.1"
   }
 }
