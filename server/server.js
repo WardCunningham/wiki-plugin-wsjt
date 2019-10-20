@@ -115,7 +115,7 @@ function startServer (params) {
     })
   }
 
-  var log = []
+  var queue = []
 
   function handle_message (message, remote) {
     // console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
@@ -138,16 +138,16 @@ function startServer (params) {
         // let conf = dec.one()
         let rept = `${remote.address} ${format(r.time())} ${r.freq()} ${r.copy()}`
         // console.log(rept)
-        while(log.length >= 10000) log.shift()
-        log.push(rept)
+        while(queue.length >= 10000) queue.shift()
+        queue.push(rept)
         break;
     }
   }
 
   function winnow () {
     let expired = ` ${format(Date.now() - 60*60*1000)} `
-    while(log.length > 0 && log[0].includes(expired)) {
-      log.shift()
+    while(queue.length > 0 && queue[0].includes(expired)) {
+      queue.shift()
     }
   }
   
@@ -157,21 +157,21 @@ function startServer (params) {
   app.get('/plugin/wsjt/copy', cors, (req, res) => {
     let last = req.query.last || 0
     res.set('Content-Type', 'text/plain')
-    res.send(log.slice(-last).join("\n")+"\n")
+    res.send(queue.slice(-last).join("\n")+"\n")
   })
 
   app.get('/plugin/wsjt/find', cors, (req, res) => {
-    let found = log.filter(line => line.includes(req.query.word))
+    let found = queue.filter(line => line.includes(req.query.word))
     res.set('Content-Type', 'text/plain')
     res.send(found.join("\n")+"\n")
   })
 
   app.get('/plugin/wsjt/stats', cors, (req, res) => {
-    res.json(tally(log))
+    res.json(tally(queue))
   })
 
   app.get('/plugin/wsjt/attention', cors, (req, res) => {
-    res.json(attention(log))
+    res.json(attention(queue))
   })
 }
 
