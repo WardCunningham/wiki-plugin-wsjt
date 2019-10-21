@@ -154,14 +154,12 @@ function startServer (params) {
         let rept = `${remote.address} ${format(r.time())} ${r.freq()} ${r.copy()}`
         // console.log(rept)
         push(rept)
-        console.log('push',reading,writing)
         break;
     }
   }
 
   function winnow () {
     let expired = ` ${format(Date.now() - 60*60*1000)} `
-    console.log('winnow',expired,reading,writing)
     while(more() && queue[reading] && queue[reading].includes(expired)) {
       reading = next(reading)
     }
