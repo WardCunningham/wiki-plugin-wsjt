@@ -162,7 +162,7 @@ function startServer (params) {
   function winnow () {
     let expired = ` ${format(Date.now() - 60*60*1000)} `
     console.log('winnow',expired,reading,writing)
-    while(more() && queue[reading].includes(expired)) {
+    while(more() && queue[reading] && queue[reading].includes(expired)) {
       reading = next(reading)
     }
   }
