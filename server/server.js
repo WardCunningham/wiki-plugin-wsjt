@@ -115,7 +115,22 @@ function startServer (params) {
     })
   }
 
-  var queue = []
+  // |-------|=============|----------------|
+  // 0       reading       writing          length-1
+  //
+  // |==============|-------------|=========|
+  // 0              writing       reading   length-1
+
+  var queue = new Array(12000)
+  var reading = writing = 0
+
+  const next = (i) => {return (i+1)%queue.length}
+  const more = ( ) => {return reading != writing}
+  const room = ( ) => {if(next(writing) == reading) reading = next(reading)}
+  const push = (v) => {room(); queue[writing] = v; writing = next(writing);}
+  const copy = ( ) => {return writing >= reading
+      ? queue.slice(reading, writing)
+      : queue.slice(reading, queue.length).concat(queue.slice(0,writing))}
 
   function handle_message (message, remote) {
     // console.log(remote.address + ':' + remote.port +' - ' + buf2hex(message));
@@ -138,16 +153,17 @@ function startServer (params) {
         // let conf = dec.one()
         let rept = `${remote.address} ${format(r.time())} ${r.freq()} ${r.copy()}`
         // console.log(rept)
-        while(queue.length >= 10000) queue.shift()
-        queue.push(rept)
+        push(rept)
+        console.log('push',reading,writing)
         break;
     }
   }
 
   function winnow () {
     let expired = ` ${format(Date.now() - 60*60*1000)} `
-    while(queue.length > 0 && queue[0].includes(expired)) {
-      queue.shift()
+    console.log('winnow',expired,reading,writing)
+    while(more() && queue[reading].includes(expired)) {
+      reading = next(reading)
     }
   }
   
@@ -157,21 +173,21 @@ function startServer (params) {
   app.get('/plugin/wsjt/copy', cors, (req, res) => {
     let last = req.query.last || 0
     res.set('Content-Type', 'text/plain')
-    res.send(queue.slice(-last).join("\n")+"\n")
+    res.send(copy().slice(-last).join("\n")+"\n")
   })
 
   app.get('/plugin/wsjt/find', cors, (req, res) => {
-    let found = queue.filter(line => line.includes(req.query.word))
+    let found = copy().filter(line => line.includes(req.query.word))
     res.set('Content-Type', 'text/plain')
     res.send(found.join("\n")+"\n")
   })
 
   app.get('/plugin/wsjt/stats', cors, (req, res) => {
-    res.json(tally(queue))
+    res.json(tally(copy()))
   })
 
   app.get('/plugin/wsjt/attention', cors, (req, res) => {
-    res.json(attention(queue))
+    res.json(attention(copy()))
   })
 }
 
